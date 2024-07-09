@@ -1,0 +1,22 @@
+{
+  "version": "0.2",
+  "ignorePaths": [],
+  "dictionaryDefinitions": [],
+  "dictionaries": [],
+  "words": [
+    "apprunner",
+    "boto3",
+    "dotenv",
+    "faiss",
+    "hotswap",
+    "pkgs",
+    "pycache",
+    "refreshable",
+    "Runtimes",
+    "venv",
+    "Sigv4",
+    "classmethod"
+  ],
+  "ignoreWords": [],
+  "import": []
+}
