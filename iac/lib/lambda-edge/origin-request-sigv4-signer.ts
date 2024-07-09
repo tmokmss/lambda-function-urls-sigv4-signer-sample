@@ -20,6 +20,7 @@ export const handler: CloudFrontRequestHandler = async (
 
   // リクエストボディがある場合は、ここで取得します
   const body = request.body?.data || "";
+  const decodedBody = Buffer.from(body, "base64").toString("utf-8");
 
   const parsedUrl = parseUrl(url);
   console.log("parsedUrl", { parsedUrl });
@@ -36,7 +37,7 @@ export const handler: CloudFrontRequestHandler = async (
     hostname: parsedUrl.hostname || "",
     method: request.method,
     path: parsedUrl.path,
-    body: body,
+    body: decodedBody,
   });
   console.log("httpRequest", { httpRequest });
 
