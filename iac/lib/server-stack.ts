@@ -20,6 +20,7 @@ import {
 import { Construct } from "constructs";
 
 export class ServerStack extends cdk.Stack {
+  readonly distribution: cdk.aws_cloudfront.Distribution;
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -83,10 +84,34 @@ def handler(_event, _context):
       httpVersion: HttpVersion.HTTP2_AND_3,
       priceClass: PriceClass.PRICE_CLASS_200,
     });
+    this.distribution = cloudFrontDistribution;
+
+    const cfnOriginAccessControl =
+      new cdk.aws_cloudfront.CfnOriginAccessControl(
+        this,
+        "OriginAccessControl",
+        {
+          originAccessControlConfig: {
+            name: "Origin Access Control for Lambda Functions URL",
+            originAccessControlOriginType: "lambda",
+            signingBehavior: "always",
+            signingProtocol: "sigv4",
+          },
+        },
+      );
+
+    const cfnDistribution = this.distribution.node
+      .defaultChild as cdk.aws_cloudfront.CfnDistribution;
+
+    // Set OAC
+    cfnDistribution.addPropertyOverride(
+      "DistributionConfig.Origins.0.OriginAccessControlId",
+      cfnOriginAccessControl.attrId,
+    );
 
     lambdaFunction.addPermission("AllowCloudFrontServicePrincipal", {
       principal: new cdk.aws_iam.ServicePrincipal("cloudfront.amazonaws.com"),
-      action: "lambda:InvokeFunction",
+      action: "lambda:InvokeFunctionUrl",
       sourceArn: `arn:aws:cloudfront::${
         cdk.Stack.of(this).account
       }:distribution/${cloudFrontDistribution.distributionId}`,

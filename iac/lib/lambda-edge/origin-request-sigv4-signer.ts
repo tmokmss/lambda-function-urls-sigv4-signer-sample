@@ -9,6 +9,13 @@ import { SignatureV4 } from "@aws-sdk/signature-v4";
 import { defaultProvider } from "@aws-sdk/credential-provider-node";
 import { Sha256 } from "@aws-crypto/sha256-js";
 
+const hashPayload = async (payload) => {
+  const encoder = new TextEncoder().encode(payload);
+  const hash = await crypto.subtle.digest("SHA-256", encoder);
+  const hashArray = Array.from(new Uint8Array(hash));
+  return hashArray.map((bytes) => bytes.toString(16).padStart(2, "0")).join("");
+};
+
 export const handler: CloudFrontRequestHandler = async (
   event: CloudFrontRequestEvent,
   _context,
@@ -21,6 +28,12 @@ export const handler: CloudFrontRequestHandler = async (
   // リクエストボディがある場合は、ここで取得します
   const body = request.body?.data || "";
   const decodedBody = Buffer.from(body, "base64").toString("utf-8");
+
+  request.headers["x-amz-content-sha256"] = [
+    { key: "x-amz-content-sha256", value: await hashPayload(decodedBody) },
+  ];
+
+  return request;
 
   const parsedUrl = parseUrl(url);
   console.log("parsedUrl", { parsedUrl });
